@@ -1,0 +1,37 @@
+/* Wrap both the stream and chat in a container */
+.stream-container {
+    display: flex;
+    flex-direction: row; /* Align the stream and chat side by side */
+    height: 100vh;
+}
+
+/* Stream settings */
+#stream {
+    flex: 1;
+    height: 100%;
+    width: 75%; /* Adjust this width for the stream */
+}
+
+/* Chatbox settings */
+#chat-container {
+    width: 25%; /* Adjust this width for the chat */
+    height: 100%;
+    overflow-y: auto;
+    border-left: 2px solid #ccc; /* Adds a border between chat and stream */
+}
+
+/* Chat message settings */
+#chat-box {
+    max-height: 80vh;
+    overflow-y: scroll;
+}
+
+/* Other chat-related styling */
+#chat-input {
+    width: calc(100% - 80px); /* Make the input field take all width except button */
+    padding: 10px;
+}
+#send-button {
+    width: 60px;
+    padding: 10px;
+}
