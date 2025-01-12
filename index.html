@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTMP Stream with Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="/socket.io/socket.io.js"></script>
+	<link rel="stylesheet" href="styles.css">
+   
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="login-form">
+        <h2>Login</h2>
+        <input id="login-username" type="text" placeholder="Username (Optional)" />
+        <button id="login-button">Login</button>
+        <p id="login-error" style="color: red; display: none;">Invalid username or password</p>
+    </div>
+
+    <!-- Chat Box Section -->
+    <div id="chat-container" style="display: none;">
+        <div id="video-container">
+            <video id="video" controls></video>
+        </div>
+        <div id="chat">
+            <h1>Live Stream Chat</h1>
+            <div id="input-section">
+                <input id="message-input" type="text" placeholder="Type your message" />
+                <button id="send-button">Send</button>
+            </div>
+            <ul id="messages"></ul>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const loginForm = document.getElementById('login-form');
+        const chatContainer = document.getElementById('chat-container');
+        const loginButton = document.getElementById('login-button');
+        const loginError = document.getElementById('login-error');
+
+        // Default to "Anonymous" if no username is provided
+        loginButton.addEventListener('click', () => {
+            let username = document.getElementById('login-username').value.trim();
+            if (!username) {
+                username = `Anonymous_${Math.floor(Math.random() * 1000)}`;  // Random anonymous username
+            }
+
+            socket.emit('set username', username);  // Send username to server
+            loginForm.style.display = 'none';
+            chatContainer.style.display = 'flex';
+            initializeChat();  // Initialize chat after login
+        });
+
+        function initializeChat() {
+            const messages = document.getElementById('messages');
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    socket.emit('chat message', message);
+                    messageInput.value = '';
+                }
+            }
+
+            socket.on('chat message', (data) => {
+                const messageElement = document.createElement('li');
+                messageElement.textContent = `${data.prefix}: ${data.message}`;
+                messages.appendChild(messageElement);
+            });
+        }
+
+        // Initialize video stream
+        const video = document.getElementById('video');
+        const videoSrc = 'hls/paradiddle.m3u8';
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', () => video.play());
+        }
+    </script>
+</body>
+</html>
